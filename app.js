@@ -1,19 +1,41 @@
 var express = require('express');
-var app = express();
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-var config = require('./config');
-var setupController = require('./controllers/setupController');
 
+var appRoutes = require('./routes/app');
 
+var app = express();
+mongoose.connect('localhost:27017/node-angular');
 
-// var port = process.env.PORT || 3000;
-var port = 3000;
-app.use('/assets', express.static(__dirname + 
-    'public'));
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
 
-app.set('view engine', 'ejs');
+// uncomment after placing your favicon in /public
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-mongoose.connect(config.getDbConnectionString());
-
-app.listen(port, function(res, err) {
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PATCH, DELETE, OPTIONS');
+    next();
 });
+
+app.use('/', appRoutes);
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    return res.render('index');
+});
+
+
+module.exports = app;
